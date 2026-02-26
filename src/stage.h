@@ -1,0 +1,14 @@
+#ifndef STAGE_H
+#define STAGE_H
+
+#include "objects.h"
+
+struct stage{
+	sphere **spheres;
+	object **objs;
+
+	size_t sphere_count;
+	size_t obj_count;
+};
+
+#endif

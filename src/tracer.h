@@ -1,13 +1,22 @@
 #ifndef TRACER_H
 #define TRACER_H
 
-#include <math.h>
+#include <cmath>
+#include <cstdlib>
 
 const double infinity = INFINITY;
 const double pi = 3.1415926535897932385;
 
-double deg_to_rad(double deg){
+inline double deg_to_rad(double deg){
 	return deg*pi/180;
+}
+
+inline double rand_double(){
+	return std::rand() / (RAND_MAX + 1.0);
+}
+
+inline double rand_double(double min, double max){
+	return min + (max-min) * rand_double();
 }
 
 #include "color.h"

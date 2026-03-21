@@ -1,14 +1,11 @@
 #ifndef HIT_H
 #define HIT_H
 
-#include "objects.h"
-#include "stage.h"
-#include "vec3.h"
-#include "interval.h"
-
 struct hit_record{
 	vec3 point;
 	vec3 normal;
+	void *mat;
+	int type;
 	double t;
 	bool front_face;
 };
@@ -49,6 +46,8 @@ bool hit(sphere s,ray r,interval ray_t,hit_record &record){
 	record.point = ray_at(r,root);
 	vec3 out_normal = vec_div(vec_sub(record.point,s.position),s.radius);
 	set_face_normal(record,r,out_normal);
+	record.mat = s.mat;
+	record.type = s.type;
 
 	return true;
 }

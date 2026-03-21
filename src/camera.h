@@ -1,10 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "color.h"
-#include "interval.h"
-#include "ray.h"
-#include "tracer.h"
+#include "material.h"
 
 struct camera{
 	double aspect_ratio;
@@ -29,6 +26,8 @@ struct camera{
 
 	size_t samples_per_pixel;
 	double pixel_sample_scale;
+
+	size_t max_depth;
 };
 
 inline vec3 sample_square() {
@@ -48,7 +47,7 @@ ray get_ray(const camera &cam,int x,int y){
 void camera_init(camera &cam){
 	cam.aspect_ratio = 16.0/9.0;
 	cam.image_width = 400;
-	cam.image_height = max(1.0,cam.image_width/cam.aspect_ratio);
+	cam.image_height = std::max(1.0,cam.image_width/cam.aspect_ratio);
 
 	cam.viewport_height = 2.0;
 	cam.viewport_width = cam.viewport_height * ((double)cam.image_width/cam.image_height);
@@ -68,15 +67,33 @@ void camera_init(camera &cam){
 
 	cam.samples_per_pixel = 100;
 	cam.pixel_sample_scale = 1.0 / cam.samples_per_pixel;
+
+	cam.max_depth = 10;
 }
 
-color camera_ray_color(const ray& r,const stage &stg){
+color camera_ray_color(const ray& r,const int depth,const stage &stg){
 
+	if(depth <= 0)return color(0.0,0.0,0.0);
 	hit_record record;
 
-	if(hit(stg,r,interval(0,infinity),record)){
-		color pixel_color = color((record.normal.x+1)/2,(record.normal.y+1)/2,(record.normal.z+1)/2);
-		return pixel_color;
+	if(hit(stg,r,interval(0.0001,infinity),record)){
+		
+		ray scattered;
+		color attenuation;
+
+		if(material_scatter(r,record,attenuation,scattered)){
+			color ray_color = camera_ray_color(scattered,depth-1,stg);
+			return color_8(vec_mul(color_normal(ray_color),color_normal(attenuation)));
+		}
+		return color(0.0,0.0,0.0);
+		
+		//vec3 direction = vec_random_on_hemisphere(record.normal); old
+		vec3 direction = vec_add(record.normal,vec_random_on_hemisphere(record.normal)); // new
+												 //
+		color hit_color = camera_ray_color(ray(record.point,direction),depth-1,stg);
+		color pixel_color = color((hit_color.r/256.0/2.0),(hit_color.g/256.0/2.0),(hit_color.b/256.0/2.0));
+		//color pixel_color = color((record.normal.x+1)/2,(record.normal.y+1)/2,(record.normal.z+1)/2);
+
 	}
 
 
@@ -93,14 +110,14 @@ color camera_ray_color(const ray& r,const stage &stg){
 void camera_render(camera &cam,const stage &stg){
 	camera_init(cam);
 
-	cout << "cam.image_width: " << cam.image_width << endl << "cam.image_height: " << cam.image_height << endl;
+	std::cout << "cam.image_width: " << cam.image_width << std::endl << "cam.image_height: " << cam.image_height << std::endl;
 
 	FILE *out_file = fopen("./output.ppm","w");
 	fwrite("P3",1,2,out_file);
 	fwrite("\n",1,1,out_file);
-	fwrite(to_string(cam.image_width).c_str(),1,to_string(cam.image_width).length(),out_file);
+	fwrite(std::to_string(cam.image_width).c_str(),1,std::to_string(cam.image_width).length(),out_file);
 	fwrite(" ",1,1,out_file);
-	fwrite(to_string(cam.image_height).c_str(),1,to_string(cam.image_height).length(),out_file);
+	fwrite(std::to_string(cam.image_height).c_str(),1,std::to_string(cam.image_height).length(),out_file);
 	fwrite("\n",1,1,out_file);
 	fwrite("255",1,3,out_file);
 	fwrite("\n",1,1,out_file);
@@ -112,7 +129,7 @@ void camera_render(camera &cam,const stage &stg){
 			double rc=0,g=0,b=0;
 			for(int i =0;i<cam.samples_per_pixel;i++){
 				ray r = get_ray(cam,x,y);
-				color tmp_color = camera_ray_color(r,stg);
+				color tmp_color = camera_ray_color(r,cam.max_depth,stg);
 				pixel_color.r += tmp_color.r;
 				pixel_color.g += tmp_color.g;
 				pixel_color.b += tmp_color.b;
@@ -124,10 +141,10 @@ void camera_render(camera &cam,const stage &stg){
 			write_color(out_file,pixel_color);
 
 		}
-		cout<< "line " << y << " completed"<< endl;
+		std::cout<< "line " << y << " completed"<< std::endl;
 	}
 	
-	cout << "========DONE========" << endl;
+	std::cout << "========DONE========" << std::endl;
 	fclose(out_file);
 }
 #endif

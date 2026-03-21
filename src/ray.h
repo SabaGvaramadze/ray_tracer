@@ -1,9 +1,9 @@
 #ifndef RAY_H
 #define RAY_H
 
-#include "vec3.h"
-
 struct ray{
+	ray(){}
+	
 	ray(vec3 origin,vec3 direction){
 		this->origin = origin;
 		this->direction = direction;

@@ -19,12 +19,15 @@ inline double rand_double(double min, double max){
 	return min + (max-min) * rand_double();
 }
 
-#include "color.h"
 #include "vec3.h"
-#include "ray.h"
 #include "interval.h"
+#include "ray.h"
+#include "objects.h"
+#include "stage.h"
+#include "hit.h"
+#include "color.h"
 
-const interval empty(infinity,-infinity);
-const interval world(-infinity,infinity);
+const interval empty{infinity,-infinity};
+const interval world{-infinity,infinity};
 
 #endif

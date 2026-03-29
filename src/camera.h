@@ -68,7 +68,7 @@ void camera_init(camera &cam){
 	cam.samples_per_pixel = 100;
 	cam.pixel_sample_scale = 1.0 / cam.samples_per_pixel;
 
-	cam.max_depth = 10;
+	cam.max_depth = 50;
 }
 
 color camera_ray_color(const ray& r,const int depth,const stage &stg){
@@ -76,7 +76,7 @@ color camera_ray_color(const ray& r,const int depth,const stage &stg){
 	if(depth <= 0)return color(0.0,0.0,0.0);
 	hit_record record;
 
-	if(hit(stg,r,interval(0.0001,infinity),record)){
+	if(hit(stg,r,interval(0.001,infinity),record)){
 		
 		ray scattered;
 		color attenuation;

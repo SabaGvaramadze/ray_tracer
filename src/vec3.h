@@ -87,6 +87,10 @@ inline vec3 vec_reflect(const vec3 &v, const vec3 &n){
 	return vec_sub(v,vec_mul(vec_mul(n,(vec_dot(v,n))),2));
 }
 
+inline vec3 vec_refract(const vec3 &uv, const vec3 &n, const double  etai_over_etat){
+	double cos_theta = std::fmin(vec_dot(vec_mul(uv,-1),n),1.0);
+}
+
 inline bool vec_near_zero(const vec3 &v){
 	double s = 1e-8;
 	return (v.x < s && v.x > -s && v.y < s && v.y > -s && v.z < s && v.z > -s);

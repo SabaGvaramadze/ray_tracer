@@ -10,10 +10,10 @@ using namespace std;
 int main(){
 	stage stg;
 
-	lambertian material_ground = lambertian(color(0.8,0.8,0.8));
+	lambertian material_ground = lambertian(color(0.8,0.8,0.0));
 	lambertian material_center = lambertian(color(0.1,0.2,0.5));
-	metal material_left = metal(color(0.8,0.8,0.8));
-	metal material_right = metal(color(0.8,0.6,0.2));
+	metal material_left = metal(color(0.8,0.8,0.8),0.001);
+	metal material_right = metal(color(0.8,0.6,0.2),1.0);
 	
 
 	stg.sphere_count = 4;

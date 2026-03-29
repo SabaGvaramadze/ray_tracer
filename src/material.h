@@ -20,13 +20,17 @@ struct lambertian{
 
 struct metal{
 	color albedo;
-	metal(color albedo){
+	double fuzz;
+	metal(color albedo,double fuzz){
 		this->albedo = albedo;
+		if(fuzz > 1)this->fuzz = 1;
+		else this->fuzz = fuzz;
 	}
 };
 
 inline bool material_scatter(const metal &mat, const ray& r_in, const hit_record &record, color &attenuation, ray &scattered){
 	vec3 reflected = vec_reflect(r_in.direction,record.normal);
+	reflected = vec_add(vec_unit(reflected),vec_mul(vec_random_normal(),mat.fuzz));
 	scattered = ray(record.point, reflected);
 	attenuation = mat.albedo;
 	return true;
@@ -46,7 +50,7 @@ inline bool material_scatter(const material &mat, const ray& r_in, const hit_rec
 }
 
 inline bool material_scatter(const ray& r_in, const hit_record &record, color &attenuation, ray &scattered){
-	if(record.type == lambertian_type)return material_scatter( *(struct metal*)(record.mat), r_in, record, attenuation, scattered);
+	if(record.type == lambertian_type)return material_scatter( *(struct lambertian*)(record.mat), r_in, record, attenuation, scattered);
 	if(record.type == metal_type)return material_scatter(*(struct metal*)record.mat, r_in, record, attenuation, scattered);
 	return false;
 }

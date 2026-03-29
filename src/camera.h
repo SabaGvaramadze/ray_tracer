@@ -89,7 +89,7 @@ color camera_ray_color(const ray& r,const int depth,const stage &stg){
 		
 		//vec3 direction = vec_random_on_hemisphere(record.normal); old
 		vec3 direction = vec_add(record.normal,vec_random_on_hemisphere(record.normal)); // new
-												 //
+		
 		color hit_color = camera_ray_color(ray(record.point,direction),depth-1,stg);
 		color pixel_color = color((hit_color.r/256.0/2.0),(hit_color.g/256.0/2.0),(hit_color.b/256.0/2.0));
 		//color pixel_color = color((record.normal.x+1)/2,(record.normal.y+1)/2,(record.normal.z+1)/2);

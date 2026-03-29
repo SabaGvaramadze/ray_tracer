@@ -88,7 +88,10 @@ inline vec3 vec_reflect(const vec3 &v, const vec3 &n){
 }
 
 inline vec3 vec_refract(const vec3 &uv, const vec3 &n, const double  etai_over_etat){
-	double cos_theta = std::fmin(vec_dot(vec_mul(uv,-1),n),1.0);
+	double cos_theta = std::fmin(vec_dot(vec_mul(uv,-1.0),n),1.0);
+	vec3 r_out_perp =  vec_mul(vec_add(uv,vec_mul(n,cos_theta)),etai_over_etat);
+	vec3 r_out_parallel =  vec_mul(n,-std::sqrt(std::fabs(1.0-vec_length_squared(r_out_perp))));
+	return vec_add(r_out_perp,r_out_parallel);
 }
 
 inline bool vec_near_zero(const vec3 &v){

@@ -12,11 +12,13 @@ struct hit_record{
 
 void set_face_normal(hit_record &record,const ray &r,const vec3& out_normal){
 	if(vec_dot(out_normal,r.direction)<0.0){
+		record.front_face = true;
+		record.normal = out_normal;
+	}
+	else{
 		record.front_face = false;
 		record.normal = vec_mul(out_normal,-1);
 	}
-	record.normal = out_normal;
-	record.front_face = true;
 }
 bool hit(sphere s,ray r,interval ray_t,hit_record &record){
 	vec3 otc = vec_sub(s.position,r.origin);

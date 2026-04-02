@@ -28,17 +28,41 @@ struct camera{
 	double pixel_sample_scale;
 
 	size_t max_depth;
+
+	double vfov;
+
+	vec3 look_from;
+	vec3 look_at;
+	vec3 vup;
+
+	vec3 u,v,w;
+
+	double defocus_angle;
+	double focus_dist;
+
+	vec3 defocus_disk_u;
+	vec3 defocus_disk_v;
 };
 
 inline vec3 sample_square() {
 	return vec3(rand_double()-0.5,rand_double()-0.5,0);
 }
 
+inline vec3 defocus_disk_sample(const camera &cam){
+	vec3 point = random_in_unit_disk();
+	return vec_add(cam.camera_center,vec_add(vec_mul(cam.defocus_disk_u,point.x),vec_mul(cam.defocus_disk_v,point.y)));
+}
+
 ray get_ray(const camera &cam,int x,int y){
 	vec3 offset = sample_square();
 	vec3 pixel_sample_pos = vec_add(cam.pixel00, vec_add(vec_mul(cam.pixel_du, x+offset.x), vec_mul(cam.pixel_dv, y+offset.y)));
 
-	vec3 origin = cam.camera_center;
+	//vec3 origin = cam.camera_center;
+	vec3 origin;
+	
+	if(cam.defocus_angle<=0) origin = cam.camera_center;
+	else origin = defocus_disk_sample(cam);
+
 	vec3 direction = vec_sub(pixel_sample_pos,origin);
 
 	return ray(origin,direction);
@@ -46,29 +70,57 @@ ray get_ray(const camera &cam,int x,int y){
 
 void camera_init(camera &cam){
 	cam.aspect_ratio = 16.0/9.0;
-	cam.image_width = 400;
+	cam.image_width = 800;
 	cam.image_height = std::max(1.0,cam.image_width/cam.aspect_ratio);
 
-	cam.viewport_height = 2.0;
+	cam.look_from = vec3(-3,0.4,3);
+	cam.look_at = vec3(0,0,-1);
+	cam.vup = vec3(0,1,0);
+	
+	//cam.look_from = vec3(0,0,0);
+	//cam.look_at = vec3(0,0,-1);
+	//cam.vup = vec3(0,1,0);
+	
+	//cam.focal_length = vec_length(vec_sub(cam.look_from,cam.look_at));
+	
+
+	cam.defocus_angle = 0;
+	cam.focus_dist = 3.4;
+
+	cam.vfov = 20;
+
+	double theta = deg_to_rad(cam.vfov);
+	double h = std::tan(theta/2);
+	cam.viewport_height = 2 * h * cam.focus_dist;
 	cam.viewport_width = cam.viewport_height * ((double)cam.image_width/cam.image_height);
 
+	cam.camera_center = cam.look_from;
 
-	cam.focal_length = 1.0;
-	cam.camera_center = vec3(0,0,0);
+	cam.w = vec_unit(vec_sub(cam.look_from,cam.look_at));
+	cam.u = vec_unit(vec_cross(cam.vup,cam.w));
+	cam.v = vec_cross(cam.w,cam.u);
 
-	cam.viewport_u = vec3(cam.viewport_width,0,0);
-	cam.viewport_v = vec3(0,-cam.viewport_height,0);
+	cam.viewport_u = vec_mul(cam.u,cam.viewport_width);
+	cam.viewport_v = vec_mul(vec_mul(cam.v,-1),cam.viewport_height);
 
 	cam.pixel_du = vec_div(cam.viewport_u,cam.image_width);
 	cam.pixel_dv = vec_div(cam.viewport_v,cam.image_height);
 
-	cam.viewport_top_left = vec_sub(cam.camera_center,vec_add(vec_add(vec_div(cam.viewport_u,2),vec_div(cam.viewport_v,2)),vec3(0,0,cam.focal_length)));
+	//cam.viewport_top_left = vec_sub(cam.camera_center,vec_add(vec_add(vec_div(cam.viewport_u,2),vec_div(cam.viewport_v,2)),vec3(0,0,cam.focal_length)));
+
+	cam.viewport_top_left = vec_sub(vec_sub(vec_sub(cam.camera_center,vec_mul(cam.w,cam.focus_dist)),vec_div(cam.viewport_u,2)),vec_div(cam.viewport_v,2));
+	
 	cam.pixel00 = vec_add(cam.viewport_top_left,vec_mul(vec_add(cam.pixel_du,cam.pixel_dv),0.5));
 
-	cam.samples_per_pixel = 100;
+	cam.samples_per_pixel = 150;
 	cam.pixel_sample_scale = 1.0 / cam.samples_per_pixel;
 
 	cam.max_depth = 50;
+	
+	double defocus_radius = cam.focus_dist * std::tan(deg_to_rad(cam.defocus_angle/2));
+	cam.defocus_disk_u = vec_mul(cam.u, cam.defocus_angle);
+	cam.defocus_disk_v = vec_mul(cam.v, cam.defocus_angle);
+
 }
 
 color camera_ray_color(const ray& r,const int depth,const stage &stg){

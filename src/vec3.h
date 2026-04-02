@@ -32,6 +32,13 @@ inline vec3 vec_unit(vec3 a){
 	return vec3(a.x/len,a.y/len,a.z/len);
 }
 
+inline vec3 random_in_unit_disk(){
+	while(1){
+		vec3 point = vec3(rand_double(-1,1),rand_double(-1,1),0);
+		if(vec_length_squared(point)<1)return point;
+	}
+}
+
 inline vec3 vec_add(vec3 a, vec3 b){
 	return vec3(a.x+b.x,a.y+b.y,a.z+b.z);
 }
@@ -53,6 +60,10 @@ inline vec3 vec_div(vec3 a,double b){
 
 inline double vec_dot(vec3 a,vec3 b){
 	return (a.x*b.x+a.y*b.y+a.z*b.z);
+}
+
+inline vec3 vec_cross(const vec3 &u,const vec3 &v){
+	return vec3(u.y*v.z-u.z*v.y, u.z*v.x-u.x*v.z,u.x*v.y-u.y*v.x);
 }
 
 inline vec3 vec_random(double min,double max){
